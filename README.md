@@ -3,8 +3,9 @@
 The following function will extract binned retention time (min), precursor m/z, and intensity values ​​from the DIA-NN report and return a list containing the information needed to create a 3D plot.
 The reason I binned the data is because I couldn't find a workaround to plot many values ​​using R libraries like `graphics` or `GA`. If you know a way to do it, please let me know.
 
-you will need the tidyverse library appended.
 ❗I'm assuming you know how to import report.parquet into your R session and do all the necessary data wrangling. If you have trouble doing this step, you can check out the repository for an in-depth analysis of the report.parquet file [here](https://github.com/41ison/QC4DIANN).
+
+You will need the tidyverse library appended.
 
 ```r
 library(tidyverse)
@@ -21,8 +22,8 @@ binning_data <- function(data, num_RT_bins, num_Mz_bins) {
 z_matrix <- data %>%
     dplyr::select(RT, Precursor.Mz, Precursor.Normalised) %>%
     dplyr::mutate(
-      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT into bins
-      Mz_bin = cut(Precursor.Mz, breaks = num_Mz_bins, labels = FALSE)  # Convert Mz into bins
+      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT units into bins
+      Mz_bin = cut(Precursor.Mz, breaks = num_Mz_bins, labels = FALSE)  # Convert m/z values into bins
     ) %>%
     group_by(RT_bin, Mz_bin) %>%
     summarize(Precursor.Normalised = mean(Precursor.Normalised, na.rm = TRUE), .groups = "drop") %>% 
@@ -34,8 +35,8 @@ z_matrix <- data %>%
 x_vals <- data %>%
     dplyr::select(RT, Precursor.Mz, Precursor.Normalised) %>%
     dplyr::mutate(
-      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT into bins
-      Mz_bin = cut(Precursor.Mz, breaks = num_Mz_bins, labels = FALSE)  # Convert Mz into bins
+      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT units into bins
+      Mz_bin = cut(Precursor.Mz, breaks = num_Mz_bins, labels = FALSE)  # Convert m/z values into bins
     ) %>%
     group_by(RT_bin, Mz_bin) %>%
     summarize(Precursor.Normalised = mean(Precursor.Normalised, na.rm = TRUE), .groups = "drop") %>% 
@@ -46,7 +47,7 @@ x_vals <- data %>%
 y_vals <- data %>% 
     dplyr::select(RT, Precursor.Mz, Precursor.Normalised) %>%
     dplyr::mutate(
-      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT into bins
+      RT_bin = cut(RT, breaks = num_RT_bins, labels = FALSE),  # Convert RT units into bins
       Mz_bin = cut(Precursor.Mz, breaks = num_Mz_bins, labels = FALSE)  # Convert m/z values into bins
     ) %>%
     group_by(RT_bin, Mz_bin) %>%
@@ -61,6 +62,7 @@ y_vals <- data %>%
 
 Once the function is loaded, all you need to do is import the DIA-NN report and select the bins that work for you.
 Here, you need to find the optimal binning for your data. You can try starting with 50, then increasing by +10 until the function stops working.
+Note that we are filtering a single sample of the diann_report file (HeLa_01).
 
 ```r
 sample_binned <- binning_data(diann_report %>%
